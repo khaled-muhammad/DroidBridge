@@ -15,11 +15,11 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            exe: DroidBridge-linux-amd64
+            artifact: DroidBridge-linux-amd64
           - os: windows-latest
-            exe: DroidBridge-windows-amd64.exe
+            artifact: DroidBridge-windows-amd64.exe
           - os: macos-latest
-            exe: DroidBridge-macos-amd64
+            artifact: DroidBridge-macos-amd64
 
     runs-on: ${{ matrix.os }}
 
@@ -38,7 +38,9 @@ jobs:
           pip install -r requirements.txt
           pip install pyinstaller
 
-      - name: Build with PyInstaller (Linux)
+      # ---------- BUILD ----------
+
+      - name: Build (Linux)
         if: matrix.os == 'ubuntu-latest'
         env:
           QT_QPA_PLATFORM: offscreen
@@ -51,12 +53,12 @@ jobs:
             --hidden-import PySide6.QtGui \
             --collect-all PySide6
 
-      - name: Build with PyInstaller (Windows)
+      - name: Build (Windows)
         if: matrix.os == 'windows-latest'
         run: |
           pyinstaller app.py --onefile --windowed --name DroidBridge --hidden-import PySide6.QtWidgets --hidden-import PySide6.QtCore --hidden-import PySide6.QtGui --collect-all PySide6
 
-      - name: Build with PyInstaller (macOS)
+      - name: Build (macOS)
         if: matrix.os == 'macos-latest'
         run: |
           pyinstaller app.py \
@@ -68,30 +70,39 @@ jobs:
             --hidden-import PySide6.QtGui \
             --collect-all PySide6
 
-      - name: Prepare artifact (Linux)
+      # ---------- PACKAGE ----------
+
+      - name: Package Linux
         if: matrix.os == 'ubuntu-latest'
         run: |
-          mkdir -p dist/release
-          cp dist/DroidBridge dist/release/${{ matrix.exe }}
+          mkdir release
+          cp dist/DroidBridge release/
+          cd release
+          tar -czf DroidBridge-linux-amd64.tar.gz DroidBridge
+          rm DroidBridge
 
-      - name: Prepare artifact (Windows)
+      - name: Package Windows
         if: matrix.os == 'windows-latest'
         shell: cmd
         run: |
-          mkdir dist\release
-          copy dist\DroidBridge.exe dist\release\DroidBridge-windows-amd64.exe
+          mkdir release
+          copy dist\DroidBridge.exe release\DroidBridge-windows-amd64.exe
+          powershell Compress-Archive release\DroidBridge-windows-amd64.exe release\DroidBridge-windows-amd64.zip
+          del release\DroidBridge-windows-amd64.exe
 
-      - name: Prepare artifact (macOS)
+      - name: Package macOS
         if: matrix.os == 'macos-latest'
         run: |
-          mkdir -p dist/release
-          cp -R dist/DroidBridge.app dist/release/DroidBridge-macos-amd64.app
+          mkdir release
+          cd dist
+          zip -r DroidBridge-macos-amd64.zip DroidBridge.app
+          mv DroidBridge-macos-amd64.zip ../release/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.os }}
-          path: dist/release/
+          path: release/
 
   release:
     needs: build
@@ -103,19 +114,23 @@ jobs:
         with:
           path: artifacts
 
-      - name: Prepare release assets
+      - name: Prepare release files
         run: |
-          mkdir -p release
-          VERSION=${GITHUB_REF#refs/tags/v}
-          for dir in artifacts/*/; do
-            [ -d "$dir" ] && cp -r "$dir"* release/ 2>/dev/null || true
-          done
-          ls -la release/
+          mkdir release
+          cp -r artifacts/*/* release/ || true
+          ls -la release
 
-      - name: Create Release
+      - name: Generate checksums
+        run: |
+          cd release
+          sha256sum * > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: release/*
+          files: |
+            release/*
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
