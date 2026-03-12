@@ -11,8 +11,15 @@ permissions:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            exe: DroidBridge-linux-amd64
+          - os: windows-latest
+            exe: DroidBridge-windows-amd64.exe
+          - os: macos-latest
+            exe: DroidBridge-macos-amd64
 
     runs-on: ${{ matrix.os }}
 
@@ -20,16 +27,71 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
         run: |
-          mkdir dist
-          echo "Build for ${{ matrix.os }}" > dist/DroidBridge-${{ matrix.os }}.txt
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build with PyInstaller (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          pyinstaller app.py \
+            --onefile \
+            --name DroidBridge \
+            --hidden-import PySide6.QtWidgets \
+            --hidden-import PySide6.QtCore \
+            --hidden-import PySide6.QtGui \
+            --collect-all PySide6
+
+      - name: Build with PyInstaller (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          pyinstaller app.py --onefile --windowed --name DroidBridge --hidden-import PySide6.QtWidgets --hidden-import PySide6.QtCore --hidden-import PySide6.QtGui --collect-all PySide6
+
+      - name: Build with PyInstaller (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          pyinstaller app.py \
+            --onefile \
+            --windowed \
+            --name DroidBridge \
+            --hidden-import PySide6.QtWidgets \
+            --hidden-import PySide6.QtCore \
+            --hidden-import PySide6.QtGui \
+            --collect-all PySide6
+
+      - name: Prepare artifact (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          mkdir -p dist/release
+          cp dist/DroidBridge dist/release/${{ matrix.exe }}
+
+      - name: Prepare artifact (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: cmd
+        run: |
+          mkdir dist\release
+          copy dist\DroidBridge.exe dist\release\DroidBridge-windows-amd64.exe
+
+      - name: Prepare artifact (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          mkdir -p dist/release
+          cp -R dist/DroidBridge.app dist/release/DroidBridge-macos-amd64.app
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: build-${{ matrix.os }}
-          path: dist/
+          name: ${{ matrix.os }}
+          path: dist/release/
 
   release:
     needs: build
@@ -41,9 +103,19 @@ jobs:
         with:
           path: artifacts
 
+      - name: Prepare release assets
+        run: |
+          mkdir -p release
+          VERSION=${GITHUB_REF#refs/tags/v}
+          for dir in artifacts/*/; do
+            [ -d "$dir" ] && cp -r "$dir"* release/ 2>/dev/null || true
+          done
+          ls -la release/
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/**/*
+          files: release/*
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
