@@ -30,6 +30,8 @@ pip install -r requirements.txt
 python app.py
 ```
 
+**Resume after failure:** If push or extraction fails, run `python resume_migration.py` to continue without re-compressing. Pick the device and it will skip push if the archive is already on the device.
+
 1. Connect both devices via USB
 2. Choose source (device or local folder) and destination device
 3. Click **Analyze Storage** to scan and build a migration plan

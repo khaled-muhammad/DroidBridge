@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from core.adb_manager import ADBManager
 from core.extraction_engine import ExtractionEngine
-from utils.constants import MIGRATION_TEMP_DIR, SDCARD_PATH, MIGRATION_PLAN_FILE
+from utils.constants import MIGRATION_TEMP_DIR, SDCARD_PATH
 from utils.file_utils import format_size
 from utils.logger import setup_logger
 
@@ -52,7 +52,6 @@ def main() -> int:
         print("Run a full migration first (Analyze + Start Migration) to create it.")
         return 1
 
-    size_mb = archive_path.stat().st_size / (1024 * 1024)
     print(f"Archive: {archive_path} ({format_size(archive_path.stat().st_size)})")
 
     # 3. Check if archive already on device (skip push if so)
