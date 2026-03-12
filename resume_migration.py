@@ -54,12 +54,23 @@ def main() -> int:
 
     print(f"Archive: {archive_path} ({format_size(archive_path.stat().st_size)})")
 
-    # 3. Check if archive already on device (skip push if so)
+    # 3. Check if archive already on device AND same size (skip push only if intact)
     remote_archive = f"{MIGRATION_TEMP_DIR}/migration.tar"
-    if adb.file_exists(remote_archive, serial):
-        print(f"Archive already on device - skipping push, extracting only.\n")
-        skip_push = True
+    local_size = archive_path.stat().st_size
+    dest_info = adb.get_file_info(remote_archive, serial)
+    if dest_info:
+        dest_size, _ = dest_info
+        if dest_size == local_size:
+            print(f"Archive already on device (same size) - skipping push, extracting only.\n")
+            skip_push = True
+        else:
+            print(f"Archive on device is incomplete ({format_size(dest_size)} vs {format_size(local_size)}) - re-pushing.\n")
+            adb.remove_remote_file(remote_archive, serial)
+            skip_push = False
     else:
+        if adb.file_exists(remote_archive, serial):
+            print("Archive on device but size unreadable - re-pushing to ensure integrity.\n")
+            adb.remove_remote_file(remote_archive, serial)
         print("Pushing archive to device...")
         skip_push = False
 
