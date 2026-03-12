@@ -5,25 +5,32 @@ import subprocess
 from typing import List, Optional, Tuple
 
 
-def run_adb(args: List[str], serial: Optional[str] = None) -> Tuple[int, str, str]:
+def run_adb(
+    args: List[str],
+    serial: Optional[str] = None,
+    timeout: Optional[int] = None,
+) -> Tuple[int, str, str]:
     """
     Run ADB command.
     Returns (return_code, stdout, stderr).
+    timeout: seconds (default 120 for normal commands). Use None or large value for push/pull.
     """
     cmd = ["adb"]
     if serial:
         cmd.extend(["-s", serial])
     cmd.extend(args)
+    # Push/pull of large files can take hours; default 120s for other commands
+    effective_timeout = timeout if timeout is not None else 120
     try:
         result = subprocess.run(
             cmd,
             capture_output=True,
             text=True,
-            timeout=120,
+            timeout=effective_timeout,
         )
         return result.returncode, result.stdout or "", result.stderr or ""
     except subprocess.TimeoutExpired:
-        return -1, "", "ADB command timed out"
+        return -1, "", f"ADB command timed out after {effective_timeout}s"
     except FileNotFoundError:
         return -1, "", "ADB not found. Please ensure ADB is in PATH."
     except Exception as e:

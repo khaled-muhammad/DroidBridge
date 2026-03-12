@@ -2,6 +2,7 @@
 
 import subprocess
 from pathlib import Path
+import os
 from typing import List, Optional, Tuple
 
 from models import DeviceInfo
@@ -47,9 +48,17 @@ class ADBManager:
         local_path: str,
         remote_path: str,
         serial: Optional[str] = None,
+        timeout: Optional[int] = None,
     ) -> Tuple[int, str, str]:
-        """Push file to device."""
-        return run_adb(["push", local_path, remote_path], serial)
+        """Push file to device. timeout: seconds (auto-calculated from file size if None)."""
+        if timeout is None:
+            try:
+                size_mb = os.path.getsize(local_path) / (1024 * 1024)
+                # ~5 MB/s USB2, 50% buffer; min 10 min, max 6 hours
+                timeout = max(600, min(6 * 3600, int(size_mb / 5 * 1.5)))
+            except OSError:
+                timeout = 4 * 3600
+        return run_adb(["push", local_path, remote_path], serial, timeout=timeout)
 
     def pull_file(
         self,
