@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Smart Android Migration Tool - Entry point."""
+"""DroidBridge - Entry point."""
 
 import sys
 from pathlib import Path
@@ -18,7 +18,7 @@ def main() -> int:
     """Run the application."""
     setup_logger()
     app = QApplication(sys.argv)
-    app.setApplicationName("Smart Android Migration Tool")
+    app.setApplicationName("DroidBridge")
     window = MainWindow()
     window.show()
     return app.exec()

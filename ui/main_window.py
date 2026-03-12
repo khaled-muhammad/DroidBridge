@@ -22,11 +22,11 @@ from controllers.migration_controller import MigrationController
 
 
 class MainWindow(QMainWindow):
-    """Smart Android Migration Tool - main window."""
+    """DroidBridge - main window."""
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Smart Android Migration Tool")
+        self.setWindowTitle("DroidBridge")
         self.setMinimumSize(700, 600)
         self.resize(800, 700)
 
