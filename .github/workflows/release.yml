@@ -79,6 +79,7 @@ jobs:
 
       - name: Build (Windows)
         if: matrix.os == 'windows-latest'
+        shell: bash
         run: |
           pyinstaller app.py \
             --onefile \
