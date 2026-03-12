@@ -39,6 +39,7 @@ jobs:
           pip install pyinstaller
 
       # ---------- BUILD ----------
+      # Slim build: collect only needed Qt submodules, exclude heavy unused ones, strip symbols
 
       - name: Build (Linux)
         if: matrix.os == 'ubuntu-latest'
@@ -48,15 +49,68 @@ jobs:
           pyinstaller app.py \
             --onefile \
             --name DroidBridge \
+            --strip \
             --hidden-import PySide6.QtWidgets \
             --hidden-import PySide6.QtCore \
             --hidden-import PySide6.QtGui \
-            --collect-all PySide6
+            --collect-submodules PySide6.QtWidgets \
+            --collect-submodules PySide6.QtCore \
+            --collect-submodules PySide6.QtGui \
+            --exclude-module PySide6.QtWebEngine \
+            --exclude-module PySide6.QtWebEngineCore \
+            --exclude-module PySide6.QtWebEngineWidgets \
+            --exclude-module PySide6.QtMultimedia \
+            --exclude-module PySide6.QtMultimediaWidgets \
+            --exclude-module PySide6.QtQml \
+            --exclude-module PySide6.QtQuick \
+            --exclude-module PySide6.QtQuickWidgets \
+            --exclude-module PySide6.Qt3DCore \
+            --exclude-module PySide6.Qt3DRender \
+            --exclude-module PySide6.QtCharts \
+            --exclude-module PySide6.QtDataVisualization \
+            --exclude-module PySide6.QtDesigner \
+            --exclude-module PySide6.QtHelp \
+            --exclude-module PySide6.QtNetwork \
+            --exclude-module PySide6.QtSql \
+            --exclude-module PySide6.QtSvg \
+            --exclude-module PySide6.QtBluetooth \
+            --exclude-module PySide6.QtPositioning \
+            --exclude-module PySide6.QtSensors
 
       - name: Build (Windows)
         if: matrix.os == 'windows-latest'
         run: |
-          pyinstaller app.py --onefile --windowed --name DroidBridge --hidden-import PySide6.QtWidgets --hidden-import PySide6.QtCore --hidden-import PySide6.QtGui --collect-all PySide6
+          pyinstaller app.py \
+            --onefile \
+            --windowed \
+            --name DroidBridge \
+            --strip \
+            --hidden-import PySide6.QtWidgets \
+            --hidden-import PySide6.QtCore \
+            --hidden-import PySide6.QtGui \
+            --collect-submodules PySide6.QtWidgets \
+            --collect-submodules PySide6.QtCore \
+            --collect-submodules PySide6.QtGui \
+            --exclude-module PySide6.QtWebEngine \
+            --exclude-module PySide6.QtWebEngineCore \
+            --exclude-module PySide6.QtWebEngineWidgets \
+            --exclude-module PySide6.QtMultimedia \
+            --exclude-module PySide6.QtMultimediaWidgets \
+            --exclude-module PySide6.QtQml \
+            --exclude-module PySide6.QtQuick \
+            --exclude-module PySide6.QtQuickWidgets \
+            --exclude-module PySide6.Qt3DCore \
+            --exclude-module PySide6.Qt3DRender \
+            --exclude-module PySide6.QtCharts \
+            --exclude-module PySide6.QtDataVisualization \
+            --exclude-module PySide6.QtDesigner \
+            --exclude-module PySide6.QtHelp \
+            --exclude-module PySide6.QtNetwork \
+            --exclude-module PySide6.QtSql \
+            --exclude-module PySide6.QtSvg \
+            --exclude-module PySide6.QtBluetooth \
+            --exclude-module PySide6.QtPositioning \
+            --exclude-module PySide6.QtSensors
 
       - name: Build (macOS)
         if: matrix.os == 'macos-latest'
@@ -65,10 +119,33 @@ jobs:
             --onefile \
             --windowed \
             --name DroidBridge \
+            --strip \
             --hidden-import PySide6.QtWidgets \
             --hidden-import PySide6.QtCore \
             --hidden-import PySide6.QtGui \
-            --collect-all PySide6
+            --collect-submodules PySide6.QtWidgets \
+            --collect-submodules PySide6.QtCore \
+            --collect-submodules PySide6.QtGui \
+            --exclude-module PySide6.QtWebEngine \
+            --exclude-module PySide6.QtWebEngineCore \
+            --exclude-module PySide6.QtWebEngineWidgets \
+            --exclude-module PySide6.QtMultimedia \
+            --exclude-module PySide6.QtMultimediaWidgets \
+            --exclude-module PySide6.QtQml \
+            --exclude-module PySide6.QtQuick \
+            --exclude-module PySide6.QtQuickWidgets \
+            --exclude-module PySide6.Qt3DCore \
+            --exclude-module PySide6.Qt3DRender \
+            --exclude-module PySide6.QtCharts \
+            --exclude-module PySide6.QtDataVisualization \
+            --exclude-module PySide6.QtDesigner \
+            --exclude-module PySide6.QtHelp \
+            --exclude-module PySide6.QtNetwork \
+            --exclude-module PySide6.QtSql \
+            --exclude-module PySide6.QtSvg \
+            --exclude-module PySide6.QtBluetooth \
+            --exclude-module PySide6.QtPositioning \
+            --exclude-module PySide6.QtSensors
 
       # ---------- PACKAGE ----------
 
