@@ -76,12 +76,12 @@ class MigrationWorker(QObject):
                 progress_callback=archive_progress,
             )
             self.migration_progress.emit("transfer", 1, 1)
-            ok = self.transfer_engine.transfer_archive(
+            ok, err_msg = self.transfer_engine.transfer_archive(
                 archive_path,
                 plan.destination_serial,
             )
             if not ok:
-                self.error_occurred.emit("Transfer failed")
+                self.error_occurred.emit(err_msg or "Transfer failed")
                 return
 
             end_time = datetime.now()

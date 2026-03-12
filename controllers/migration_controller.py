@@ -279,10 +279,10 @@ class MigrationController:
 
             progress.setLabelText("Transferring to device...")
             transfer_engine = TransferEngine()
-            ok = transfer_engine.transfer_archive(archive_path, self.plan.destination_serial)
+            ok, err_msg = transfer_engine.transfer_archive(archive_path, self.plan.destination_serial)
 
             if not ok:
-                self._on_migration_error("Transfer failed")
+                self._on_migration_error(err_msg or "Transfer failed")
                 progress.close()
                 return
 

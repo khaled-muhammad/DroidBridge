@@ -20,21 +20,21 @@ class ExtractionEngine:
         extract_to: str,
         serial: Optional[str] = None,
         adb=None,
-    ) -> bool:
+    ) -> tuple[bool, str]:
         """
         Extract tar archive on device using adb shell tar -xf.
-        Paths are validated during extraction (handled by tar with -C).
+        Returns (success, error_message).
         """
         if adb is None:
             from core.adb_manager import ADBManager
             adb = ADBManager()
-        # Extract archive to sdcard (paths in archive are relative to sdcard)
         cmd = f'cd "{extract_to}" && tar -xf "{archive_path}"'
         code, stdout, stderr = adb.run_shell(cmd, serial, timeout=600)
         if code != 0:
-            logger.error("Extract failed: %s", stderr)
-            return False
-        return True
+            err = stderr.strip() or stdout.strip() or "Unknown error"
+            logger.error("Extract failed: %s", err)
+            return False, err
+        return True, ""
 
     def validate_archive_path(self, path: str) -> bool:
         """Validate path before extraction - no traversal, under sdcard."""
