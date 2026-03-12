@@ -39,7 +39,6 @@ jobs:
           pip install pyinstaller
 
       # ---------- BUILD ----------
-      # Slim build: collect only needed Qt submodules, exclude heavy unused ones, strip symbols
 
       - name: Build (Linux)
         if: matrix.os == 'ubuntu-latest'
@@ -161,17 +160,18 @@ jobs:
 
       - name: Package Windows
         if: matrix.os == 'windows-latest'
-        shell: cmd
+        shell: bash
         run: |
-          mkdir release
-          copy dist\DroidBridge.exe release\DroidBridge-windows-amd64.exe
-          powershell Compress-Archive release\DroidBridge-windows-amd64.exe release\DroidBridge-windows-amd64.zip
-          del release\DroidBridge-windows-amd64.exe
+          mkdir -p release
+          cp dist/DroidBridge.exe release/DroidBridge-windows-amd64.exe
+          cd release
+          zip DroidBridge-windows-amd64.zip DroidBridge-windows-amd64.exe
+          rm DroidBridge-windows-amd64.exe
 
       - name: Package macOS
         if: matrix.os == 'macos-latest'
         run: |
-          mkdir release
+          mkdir -p release
           cd dist
           zip -r DroidBridge-macos-amd64.zip DroidBridge.app
           mv DroidBridge-macos-amd64.zip ../release/
@@ -194,7 +194,7 @@ jobs:
 
       - name: Prepare release files
         run: |
-          mkdir release
+          mkdir -p release
           cp -r artifacts/*/* release/ || true
           ls -la release
 
@@ -207,8 +207,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            release/*
+          files: release/*
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
