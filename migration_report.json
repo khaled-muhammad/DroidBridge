@@ -1,0 +1,12 @@
+{
+  "start_time": "2026-03-12T16:41:13.599838",
+  "end_time": "2026-03-12T16:41:23.858155",
+  "duration_seconds": 10.258317,
+  "files_scanned": 50,
+  "files_migrated": 50,
+  "duplicates_skipped": 0,
+  "conflicts_resolved": 0,
+  "errors": [],
+  "total_bytes": 55087427,
+  "transfer_speed_bps": 5370025.804427763
+}
