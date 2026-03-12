@@ -29,7 +29,8 @@ class ExtractionEngine:
             from core.adb_manager import ADBManager
             adb = ADBManager()
         cmd = f'cd "{extract_to}" && tar -xf "{archive_path}"'
-        code, stdout, stderr = adb.run_shell(cmd, serial, timeout=600)
+        # 39GB extract can take 30+ mins on device; use 2h
+        code, stdout, stderr = adb.run_shell(cmd, serial, timeout=7200)
         if code != 0:
             err = stderr.strip() or stdout.strip() or "Unknown error"
             logger.error("Extract failed: %s", err)

@@ -37,11 +37,11 @@ class ADBManager:
         self,
         command: str,
         serial: Optional[str] = None,
-        timeout: int = 60,
+        timeout: Optional[int] = None,
     ) -> Tuple[int, str, str]:
-        """Execute shell command on device."""
+        """Execute shell command on device. timeout: seconds (default 120)."""
         args = ["shell", command]
-        return run_adb(args, serial)
+        return run_adb(args, serial, timeout=timeout)
 
     def push_file(
         self,
@@ -65,9 +65,12 @@ class ADBManager:
         remote_path: str,
         local_path: str,
         serial: Optional[str] = None,
+        timeout: Optional[int] = None,
     ) -> Tuple[int, str, str]:
-        """Pull file from device."""
-        return run_adb(["pull", remote_path, local_path], serial)
+        """Pull file from device. timeout: seconds (default 4h for large files)."""
+        if timeout is None:
+            timeout = 4 * 3600
+        return run_adb(["pull", remote_path, local_path], serial, timeout=timeout)
 
     def file_exists(self, remote_path: str, serial: Optional[str] = None) -> bool:
         """Check if file exists on device."""
@@ -100,7 +103,7 @@ class ADBManager:
         """List all files under base path with size and mtime."""
         # Use find with stat for size and mtime
         cmd = f'find "{base_path}" -type f -exec stat -c "%n|%s|%Y" {{}} \\; 2>/dev/null || find "{base_path}" -type f -exec stat -f "%N|%z|%m" {{}} \\; 2>/dev/null'
-        code, stdout, stderr = self.run_shell(cmd, serial, timeout=300)
+        code, stdout, stderr = self.run_shell(cmd, serial, timeout=600)
         if code != 0:
             logger.error("Find failed: %s", stderr)
             return []
