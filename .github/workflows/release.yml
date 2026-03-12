@@ -160,13 +160,11 @@ jobs:
 
       - name: Package Windows
         if: matrix.os == 'windows-latest'
-        shell: bash
         run: |
-          mkdir -p release
-          cp dist/DroidBridge.exe release/DroidBridge-windows-amd64.exe
-          cd release
-          zip DroidBridge-windows-amd64.zip DroidBridge-windows-amd64.exe
-          rm DroidBridge-windows-amd64.exe
+          mkdir release
+          copy dist\DroidBridge.exe release\DroidBridge-windows-amd64.exe
+          powershell Compress-Archive -Path release\DroidBridge-windows-amd64.exe -DestinationPath release\DroidBridge-windows-amd64.zip
+          del release\DroidBridge-windows-amd64.exe
 
       - name: Package macOS
         if: matrix.os == 'macos-latest'
